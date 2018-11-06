@@ -1,41 +1,24 @@
 # Usefull C++ Snippets
-[1 Modern C++ best practices](#bp)
 
-[1.1 Introducing abstraction](#bp-abstract)
-
-[1.1.1 For_each to encapsulate functionality](#bp-abstract-foreach)
-
-[2 Implementing design pattern](#pattern)
-
-[3 Integrating C in C++](#ccpp)
-
-[3.1 Wrapper for C-style strings](#ccpp-cstring-wrapper)
-
-[4 Utilities](#util)
-
-[4.1 Timing](#util-time)
-
-[4.1.1 Get system date & time string](#util-time-string)
-
-[4.1.2 Get milliseconds since specific timepoint](#util-time-ms)
-
-[4.2 Filesystem operations](#util-fs)
-
-[4.2.1 Check for existence](#util-fs-existence)
-
-[4.2.2 Check for emptiness](#util-fs-empty)
-
-[4.2.3 RAII text file writer](#util-fs-filewriter)
-
-[4.3 Network Monitoring (Linux)](#util-net)
-
-[4.3.1 Checking and waiting for a network connection](#util-net-check)
-
-[4.3.2 Network throughput tracking](#util-net-track)
-
-[5 Dedicated tasks](#tasks)
-
-[5.1 Finding a node in a tree](#task-tree)
+[1 Modern C++ best practices](#bp) <br/>
+&nbsp; [1.1 Introducing abstraction](#bp-abstract) <br/>
+&nbsp; &nbsp; &nbsp; [1.1.1 For_each to encapsulate functionality](#bp-abstract-foreach) <br/>
+[2 Implementing design pattern](#pattern) <br/>
+[3 Integrating C in C++](#ccpp) <br/>
+&nbsp; [3.1 Wrapper for C-style strings](#ccpp-cstring-wrapper) <br/>
+[4 Utilities](#util) <br/>
+&nbsp; [4.1 Timing](#util-time) <br/>
+&nbsp; &nbsp; &nbsp; [4.1.1 Get system date & time string](#util-time-string) <br/>
+&nbsp; &nbsp; &nbsp; [4.1.2 Get milliseconds since specific timepoint](#util-time-ms) <br/>
+&nbsp; [4.2 Filesystem operations](#util-fs) <br/>
+&nbsp; &nbsp; &nbsp; [4.2.1 Check for existence](#util-fs-existence) <br/>
+&nbsp; &nbsp; &nbsp; [4.2.2 Check for emptiness](#util-fs-empty) <br/>
+&nbsp; &nbsp; &nbsp; [4.2.3 RAII text file writer](#util-fs-filewriter) <br/>
+&nbsp; [4.3 Network Monitoring (Linux)](#util-net) <br/>
+&nbsp; &nbsp; &nbsp; [4.3.1 Checking and waiting for a network connection](#util-net-check) <br/>
+&nbsp; &nbsp; &nbsp; [4.3.2 Network throughput tracking](#util-net-track) <br/>
+[5 Dedicated tasks](#tasks) <br/>
+&nbsp; [5.1 Finding a node in a tree](#task-tree)
 
 ---
 
