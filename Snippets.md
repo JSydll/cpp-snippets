@@ -14,6 +14,7 @@
 &nbsp; &nbsp; &nbsp; [4.2.1 Check for existence](#util-fs-existence) <br/>
 &nbsp; &nbsp; &nbsp; [4.2.2 Check for emptiness](#util-fs-empty) <br/>
 &nbsp; &nbsp; &nbsp; [4.2.3 RAII text file writer](#util-fs-filewriter) <br/>
+&nbsp; &nbsp; &nbsp; [4.2.4 Loading key-value based files](#util-fs-keyvalue) <br/>
 &nbsp; [4.3 Network Monitoring (Linux)](#util-net) <br/>
 &nbsp; &nbsp; &nbsp; [4.3.1 Checking and waiting for a network connection](#util-net-check) <br/>
 &nbsp; &nbsp; &nbsp; [4.3.2 Network throughput tracking](#util-net-track) <br/>
@@ -38,7 +39,7 @@ namespace ranges {
 }
 ```
 
-Note: This is meant to encapsulate the inner workings of f and avoids the overhead of writing *begin(...), end(...)* on every call of *for_each*. The function f takes one parameter of the range item type. If the implementation of f should be visible inline, use range-based for loop instead or *for_each* with a lambda expression. 
+Note: This is meant to encapsulate the inner workings of f and avoids the overhead of writing *begin(...), end(...)* on every call of *for_each*. The function f takes one parameter of the range item type. If the implementation of f should be visible inline, use range-based for loop instead or *for_each* with a lambda expression.
 
 ## 2 Implementing design pattern <a name="pattern"/>
 
@@ -52,7 +53,7 @@ Note: This is meant to encapsulate the inner workings of f and avoids the overhe
 class cStr {
 public:
 	/** Convert a string into a char vector on construction.
-	 * The vector container is a convenient way to enable access to char*'s while leaving the 
+	 * The vector container is a convenient way to enable access to char*'s while leaving the
 	 * responsibility for resource allocation and cleanup to the well defined STL.
 	 * @param str String to be accessible as char*. */
 	cStr(std::string str) : _vec(str.begin(), str.end()){
@@ -163,7 +164,6 @@ bool isEmptyFile(std::string path){
 
 #### 4.2.3 RAII text file writer <a name="util-fs-filewriter"/>
 ```cpp
-#include <iostream>
 #include <fstream>
 
 /** Will create new file if not found. */
@@ -182,6 +182,30 @@ public:
     }
 private:
     std::ofstream m_filestream;
+};
+```
+
+#### 4.2.4 Loading key-value based files <a name="util-fs-keyvalue"/>
+Consider a file *kvFile* that contains data in lines of *key=value* pairs, then this data
+can be loaded as follows (assuming only string based values):
+```cpp
+#include <fstream>
+#include <string>
+#include <map>
+
+void loadData(std::string kvFile, std::map<std::string, std::string>& data){
+    std::ifstream f(kvFile);
+    std::string line;
+    std::size_t pos;
+    if(f.good()){
+        while(std::getline(f, line)){
+        	if(line.size() != 0){
+        		pos = line.find("=");
+        		data[line.substr(0, pos)] = line.substr(pos + 1);
+        	}
+        }
+    }
+    f.close();
 };
 ```
 
@@ -264,7 +288,7 @@ root
   |     |-- child
   ...   ...
 ```
-a recursive algorithm can be implemented as follows:
+a recursive *depth-first* search algorithm can be implemented as follows:
 ```cpp
 #include <memory>
 #include <vector>
