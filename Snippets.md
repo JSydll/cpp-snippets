@@ -15,9 +15,11 @@
 &nbsp; &nbsp; &nbsp; [4.2.2 Check for emptiness](#util-fs-empty) <br/>
 &nbsp; &nbsp; &nbsp; [4.2.3 RAII text file writer](#util-fs-filewriter) <br/>
 &nbsp; &nbsp; &nbsp; [4.2.4 Loading key-value based files](#util-fs-keyvalue) <br/>
-&nbsp; [4.3 Network Monitoring (Linux)](#util-net) <br/>
-&nbsp; &nbsp; &nbsp; [4.3.1 Checking and waiting for a network connection](#util-net-check) <br/>
-&nbsp; &nbsp; &nbsp; [4.3.2 Network throughput tracking](#util-net-track) <br/>
+&nbsp; [4.3 Programs and Processes](#util-proc) <br/>
+&nbsp; &nbsp; &nbsp; [4.3.1 Execute a system command and pipe output to string](#util-proc-cmd) <br/>
+&nbsp; [4.4 Network Monitoring (Linux)](#util-net) <br/>
+&nbsp; &nbsp; &nbsp; [4.4.1 Checking and waiting for a network connection](#util-net-check) <br/>
+&nbsp; &nbsp; &nbsp; [4.4.2 Network throughput tracking](#util-net-track) <br/>
 [5 Dedicated tasks](#tasks) <br/>
 &nbsp; [5.1 Finding a node in a tree](#task-tree)
 
@@ -32,10 +34,10 @@
 #include <algorithm>
 
 namespace ranges {
-    template<typename range_t, typename func_t>
-    func_t for_each(range_t& range, func_t f){
-        return std::for_each(begin(range), end(range), f);
-    }
+  template<typename range_t, typename func_t>
+  func_t for_each(range_t& range, func_t f){
+    return std::for_each(begin(range), end(range), f);
+  }
 }
 ```
 
@@ -56,16 +58,16 @@ public:
 	 * The vector container is a convenient way to enable access to char*'s while leaving the
 	 * responsibility for resource allocation and cleanup to the well defined STL.
 	 * @param str String to be accessible as char*. */
-	cStr(std::string str) : _vec(str.begin(), str.end()){
-		this->_vec.push_back('\0');
+	cStr(std::string str) : mVec(str.begin(), str.end()){
+		this->mVec.push_back('\0');
 	}
 	~cStr(){ };
 	/** Getter for the char* of a C-style string */
 	char* get(){
-		return &this->_vec[0];
+		return &this->mVec[0];
 	};
 private:
-	std::vector<char> _vec;
+	std::vector<char> mVec;
 };
 ```
 
@@ -83,11 +85,11 @@ private:
 
 /** Format string in the form of "%Y-%m-%d %X" */
 std::string getSystemTime(std::string format){
-    auto now = std::chrono::system_clock::now();
-    auto in_time_t = std::chrono::system_clock::to_time_t(now);
-    std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), format.c_str());
-    return ss.str();
+  auto now = std::chrono::system_clock::now();
+  auto in_time_t = std::chrono::system_clock::to_time_t(now);
+  std::stringstream ss;
+  ss << std::put_time(std::localtime(&in_time_t), format.c_str());
+  return ss.str();
 }
 ```
 
@@ -110,14 +112,14 @@ unsigned long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(no
 #include <sys/types.h>
 
 bool isValidFile(std::string path){
-    struct stat sb;
-    stat(path.c_str(), &sb);
-    return ( sb.st_mode & S_IFREG );
+  struct stat sb;
+  stat(path.c_str(), &sb);
+  return ( sb.st_mode & S_IFREG );
 }
 bool isValidDirectory(std::string path){
-    struct stat sb;
-    stat(path.c_str(), &sb);
-    return ( sb.st_mode & S_IFDIR );
+  struct stat sb;
+  stat(path.c_str(), &sb);
+  return ( sb.st_mode & S_IFDIR );
 }
 ```
 
@@ -127,7 +129,7 @@ The above gives more options for specifying the file/directory type. If only the
 #include <unistd.h>
 
 bool isAccessibleFile(std::string path){
-    return ( std::access( path.c_str(), F_OK ) != -1 );
+  return ( std::access( path.c_str(), F_OK ) != -1 );
 }
 ```
 
@@ -138,27 +140,27 @@ bool isAccessibleFile(std::string path){
 #include <dirent.h>
 
 bool isEmptyDirectory(std::string path){
-    bool empty = true;
-    /** Insert checking for existence here...*/
-    DIR* directory = opendir( path.c_str() );
-    struct dirent* singleFile;
-    while( (singleFile = readdir(directory)) != NULL ){
-        if(!strcmp(singleFile->d_name, ".") || !strcmp(singleFile->d_name, "..")){
-	    empty = false;
-	    break;
-	}
+  bool empty = true;
+  /** Insert checking for existence here...*/
+  DIR* directory = opendir( path.c_str() );
+  struct dirent* singleFile;
+  while( (singleFile = readdir(directory)) != NULL ){
+    if(!strcmp(singleFile->d_name, ".") || !strcmp(singleFile->d_name, "..")){
+      empty = false;
+      break;
     }
-    closedir(directory);
-    return empty;
+  }
+  closedir(directory);
+  return empty;
 }
 bool isEmptyFile(std::string path){
-    bool empty = false;
-    /** Insert checking for existence here...*/
-    std::ifstream thisFile(path);
-    if(thisFile)
-	empty = (thisFile.peek() == std::ifstream::traits_type::eof());
-    thisFile.close();
-    return empty;
+  bool empty = false;
+  /** Insert checking for existence here...*/
+  std::ifstream thisFile(path);
+  if(thisFile)
+    empty = (thisFile.peek() == std::ifstream::traits_type::eof());
+  thisFile.close();
+  return empty;
 }
 ```
 
@@ -169,19 +171,19 @@ bool isEmptyFile(std::string path){
 /** Will create new file if not found. */
 class FileWriter {
 public:
-    FileWriter(std::string path, bool append){
-        m_filestream.open(path, (append ? std::ios::app : std::ios::out) );
-    }
-    ~FileWriter(){
-        m_filestream.close();
-    }
-    template <class T>
-    FileWriter& operator<<(const T& content){
-        m_filestream << content;
-        return *this;
-    }
+  FileWriter(std::string path, bool append){
+    mFilestream.open(path, (append ? std::ios::app : std::ios::out) );
+  }
+  ~FileWriter(){
+    mFilestream.close();
+  }
+  template <class T>
+  FileWriter& operator<<(const T& content){
+    mFilestream << content;
+    return *this;
+  }
 private:
-    std::ofstream m_filestream;
+  std::ofstream mFilestream;
 };
 ```
 
@@ -194,24 +196,48 @@ can be loaded as follows (assuming only string based values):
 #include <map>
 
 void loadData(std::string kvFile, std::map<std::string, std::string>& data){
-    std::ifstream f(kvFile);
-    std::string line;
-    std::size_t pos;
-    if(f.good()){
-        while(std::getline(f, line)){
-        	if(line.size() != 0){
-        		pos = line.find("=");
-        		data[line.substr(0, pos)] = line.substr(pos + 1);
-        	}
-        }
+  std::ifstream f(kvFile);
+  std::string line;
+  std::size_t pos;
+  if(f.good()){
+    while(std::getline(f, line)){
+      if(line.size() != 0){
+      	pos = line.find("=");
+      	data[line.substr(0, pos)] = line.substr(pos + 1);
+      }
     }
-    f.close();
+  }
+  f.close();
 };
 ```
 
-### 4.3 Network Monitoring (Linux) <a name="util-net"/>
+### 4.3 Programs and Processes < a name="util-proc"/>
 
-#### 4.3.1 Checking and waiting for a network connection <a name="util-net-check"/>
+#### 4.3.1 Execute a system command and pipe output to string <a name="util-proc-cmd"/>
+
+Leveraging std::shared_ptr's feature to have custom deleters, the RAII principle can be enforced (although only in a function, not a dedicated class).
+```cpp
+#include <cstdio>
+#include <memory>
+
+std::string ExecuteCommand(std::string cmd) {
+	const int max_buffer = 256;
+	std::string result;
+	std::shared_ptr<FILE> cmdPipe(popen(cmd.c_str(), "r"), pclose);
+	if(cmdPipe){
+		std::array<char, max_buffer> buff;
+		while(!feof(cmdPipe.get())){
+			if(fgets(buff.data(), max_buffer, cmdPipe.get()) != nullptr)
+				result += buff.data();
+		}
+	}
+	return result;
+}
+```
+
+### 4.4 Network Monitoring (Linux) <a name="util-net"/>
+
+#### 4.4.1 Checking and waiting for a network connection <a name="util-net-check"/>
 ```cpp
 #include <string>
 #include <array>
@@ -224,28 +250,28 @@ std::array<char, 10> buff;
 std::string cmd = "ifconfig ppp0 2>/dev/null | grep -c 'inet addr'";
 std::string result;
 do {
-    // Read the result of the ifconfig command
-    std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), pclose);
-    if(!pipe)
-	/** Error handling goes here...*/
-    while(!feof(pipe.get())){
-	if(fgets(buff.data(), 10, pipe.get()) != nullptr)
-	    result += buff.data();
-    }
-    // Check if the network connection is established
-    if(result.find("1") != std::string::npos){
-	ready = true;
-	break;
-    } else {
-	// If not, wait 20 secs and try again.
-	std::this_thread::sleep_for(std::chrono::seconds(20));
-	waited += 20;
-    }
-    // Try until the maximum amount of time passed is reached.
-    } while(waited <= SystemConstants::FW_MAX_NET_WAIT);
+  // Read the result of the ifconfig command
+  std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), pclose);
+  if(!pipe)
+    /** Error handling goes here...*/
+  while(!feof(pipe.get())){
+    if(fgets(buff.data(), 10, pipe.get()) != nullptr)
+      result += buff.data();
+  }
+  // Check if the network connection is established
+  if(result.find("1") != std::string::npos){
+    ready = true;
+    break;
+  } else {
+    // If not, wait 20 secs and try again.
+    std::this_thread::sleep_for(std::chrono::seconds(20));
+    waited += 20;
+  }
+  // Try until the maximum amount of time passed is reached.
+} while(waited <= SystemConstants::FW_MAX_NET_WAIT);
 ```
 
-#### 4.3.2 Network throughput tracking <a name="util-net-track"/>
+#### 4.4.2 Network throughput tracking <a name="util-net-track"/>
 ```cpp
 #include <string>
 #include <cstdlib>
@@ -261,19 +287,19 @@ std::string result;
 std::string cmd = "ifconfig ppp0 | grep 'RX bytes' | sed -e 's/^\\s*//'";
 std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), pclose);
 if(!pipe)
-    /** Error Handling goes here... */
+  /** Error Handling goes here... */
 while(!feof(pipe.get())){
-    if(fgets(buff.data(), 200, pipe.get()) != nullptr)
-	result += buff.data();
+  if(fgets(buff.data(), 200, pipe.get()) != nullptr)
+  result += buff.data();
 }
 /** Using regex to find the values for RX/TX */
 std::regex rxVal(".*(RX bytes:)([0-9]+)\\s.*");
 std::regex txVal(".*(TX bytes:)([0-9]+)\\s.*");
 std::smatch matches;
 if(std::regex_search(result, matches, rxVal) && matches.size() > 1)
-    RXbytes = std::stoul(matches.str(2));
+  RXbytes = std::stoul(matches.str(2));
 if(std::regex_search(result, matches, txVal) && matches.size() > 1)
-    TXbytes = std::stoul(matches.str(2));
+  TXbytes = std::stoul(matches.str(2));
 ```
 
 ## 5 Dedicated tasks <a name="tasks"/>
@@ -294,19 +320,19 @@ a recursive *depth-first* search algorithm can be implemented as follows:
 #include <vector>
 
 std::shared_ptr<node_t> findNodeByName(const std::shared_ptr<node_t>& root, std::string name){
-    shared_ptr<node_t> childMatch;
-    if(root->name == name){
-        return root;
+  shared_ptr<node_t> childMatch;
+  if(root->name == name){
+    return root;
+  } else {
+    if(root->children.size()){
+      for(const auto& child : root->children){
+        childMatch = findNodeByName(child, name);
+        if(childMatch != nullptr) break;
+      }
+      return childMatch;
     } else {
-        if(root->children.size()){
-            for(const auto& child : root->children){
-                childMatch = findNodeByName(child, name);
-                if(childMatch != nullptr) break;
-            }
-            return childMatch;
-        } else {
-            return nullptr;
-        }
+      return nullptr;
     }
+  }
 }
 ```
